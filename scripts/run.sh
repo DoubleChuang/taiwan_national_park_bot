@@ -13,6 +13,7 @@ else
     docker run -it --rm \
         -e ID=$ID \
         -e EMAIL=$EMAIL \
+        -e CHROME_REMOTE_URL=$CHROME_REMOTE_URL \
         -v $PROJECT_DIR:/workspace \
         -w /workspace \
         chenjr0719/tnp_bot

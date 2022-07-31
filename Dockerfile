@@ -9,14 +9,13 @@ RUN apt update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install \
-    "beautifulsoup4==4.9.0" \
-    "opencv-python==4.2.0.34" \
-    "pytesseract==0.3.4" \
-    "requests==2.23.0"
-
 COPY . /tmp/src
 RUN pip install /tmp/src && rm -rf /tmp/src
+
+### Avoid: 
+# ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+RUN pip uninstall -y opencv-python opencv-python-headless && \
+    pip install opencv-python-headless==4.4.0.46
 
 
 ENV DEBIAN_FRONTEND=dialog

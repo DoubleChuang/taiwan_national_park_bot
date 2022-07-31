@@ -1,0 +1,46 @@
+version: "3"
+services:
+  selenium-hub:
+    image: selenium/hub:4.2.0
+    container_name: selenium-hub
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"    
+    shm_size: 2gb
+    healthcheck:
+      # https://github.com/SeleniumHQ/docker-selenium/tree/4.2.2-20220622
+      test: ["CMD", "/opt/bin/check-grid.sh", "--host", "0.0.0.0", "--port", "4444"]
+      interval: 15s
+      timeout: 30s
+      retries: 5
+
+  chrome:
+    image: selenium/node-chrome:4.2.0
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      ### Running in Headless mode
+      # https://github.com/SeleniumHQ/docker-selenium#running-in-headless-mode
+      - SE_START_XVFB=false
+
+  tnpb:
+    image: chenjr0719/tnp_bot
+    # build: .
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+      chrome:
+        condition: service_started
+    # command: tail -f /etc/hosts
+    restart: on-failure
+    # environment:
+    #   - ID=
+    #   - EMAIL=
+    #   - CHROME_REMOTE_URL=http://selenium-hub:4444/wd/hub
+    env_file:
+      - .env

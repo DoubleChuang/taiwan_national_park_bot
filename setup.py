@@ -14,10 +14,12 @@ with codecs.open(
         raise RuntimeError("Unable to determine version.")
 
 install_requires = [
-    "beautifulsoup4==4.9.0",
-    "opencv-python==4.2.0.34",
+    "opencv-python-headless==4.4.0.46",
     "pytesseract==0.3.4",
-    "requests==2.23.0",
+    # "requests==2.23.0",
+    "selenium==4.2.0",
+    "paddleocr==2.5.0.3",
+    "paddlepaddle==2.3.1"
 ]
 
 dev_require = ["black==19.10b0", "pylint==2.5.0", "wheel==0.34.2"]
@@ -30,5 +32,5 @@ setup(
     packages=find_packages(exclude=["docs", "tests"]),
     install_requires=install_requires,
     extras_require={"dev": dev_require},
-    entry_points={"console_scripts": ["tnpb=tnpb.__main__:main"]},
+    entry_points={"console_scripts": ["tnpb=tnpb.__main2__:main"]},
 )
