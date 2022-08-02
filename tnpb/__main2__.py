@@ -7,6 +7,7 @@ from tnpb.ocr import get_verify_code
 from tnpb.logger import error_logger, logger
 import os
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
@@ -18,10 +19,10 @@ class TNPv2Bot:
             os.getenv("CHROME_REMOTE_URL"),
             desired_capabilities=DesiredCapabilities.CHROME)
 
-        ### for screen display
+        # ## for screen display
         # _chrome_opt = Options()
         # _chrome_opt.add_argument("--disable-notifications")
-        # _chrome_opt.add_argument('--headless')  # enable headless mode
+        # # _chrome_opt.add_argument('--headless')  # enable headless mode
         # _chrome_opt.add_argument('--disable-gpu') # disable GPU, avoid system error or web error
         # self._chrome = webdriver.Chrome(
         #     './chromedriver', chrome_options=_chrome_opt)
@@ -91,6 +92,7 @@ class TNPv2Bot:
             alert_text = self._chrome.switch_to.alert.text
 
             if len(alert_text):
+                logger.info(alert_text)
                 self._chrome.switch_to.alert.accept()
                 if alert_text.startswith(error_verify_code_msg):
                     ret = False
@@ -100,22 +102,33 @@ class TNPv2Bot:
         self.wait_loading()
         return ret
 
-    def send_draft(self, retry_limit: int = 20):
+    def send_draft(self, retry_limit: int = 100):
         self._chrome.get("https://npm.cpami.gov.tw/apply_2_3.aspx")
         self.handle_alert()
 
         self._chrome.find_element_by_id(
             "ContentPlaceHolder1_New_List_btnupd_0").click()
         self.handle_alert()
+        
+        utc_now = datetime.utcnow()        
+        utc_now += relativedelta(months=2, hours=8)
+        date_time = utc_now.strftime("%Y-%m-%d")        
+        Select(self._chrome.find_element_by_id("ContentPlaceHolder1_applystart")).select_by_visible_text(date_time)
 
         self._chrome.find_element_by_id(
             "ContentPlaceHolder1_btnsetpup").click()
-        self._chrome.find_element_by_id("lineonechk").click()
+        
+        #TODO if member > 1 
+        try:
+            self._chrome.find_element_by_id("lineonechk").click()
+        except Exception as e:
+            logger.info("member > 1")
+            pass
         self._chrome.find_element_by_id(
             "ContentPlaceHolder1_btnsetp2upnext").click()
 
         for i in range(retry_limit):
-            if not (7 < datetime.utcnow().hour+8 < 23):
+            if not (7 <= datetime.utcnow().hour+8 < 23):                
                 logger.info("can not send resquest time")
                 return
 
@@ -123,16 +136,22 @@ class TNPv2Bot:
             self.wait_loading()
             vcode = self._chrome.find_element_by_id(
                 "ContentPlaceHolder1_vcode")
-            save = self._chrome.find_element_by_id(
-                "ContentPlaceHolder1_btnsave")
+            
+            try:
+                save = self._chrome.find_element_by_id(
+                    "ContentPlaceHolder1_btnsave")
+            except Exception as e:
+                self._chrome.refresh()
+                logger.info(f'Try {i+1} times: {e}')
+                time.sleep(1)
+                continue         
 
             vcode.clear()
             img_base64 = self.get_verify_image(
                 xpath='//*[@id="ContentPlaceHolder1_imgcode"]')
             verify_code = get_verify_code(base64.b64decode(img_base64))
+            vcode.send_keys(verify_code)
 
-            # TODO remove test code
-            vcode.send_keys(verify_code+"1")
             save.click()
             if self.handle_alert():
                 break
