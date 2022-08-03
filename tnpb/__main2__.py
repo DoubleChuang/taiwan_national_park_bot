@@ -30,6 +30,18 @@ class TNPv2Bot:
     def wait_loading(self, wait_sec: float = 2.0):
         # Wait for the page to load
         time.sleep(wait_sec)
+    
+    def capture_screen(self, screen_path):
+        if screen_path is not None:
+            from pathlib import Path
+            screen_path = Path(screen_path)
+
+            if screen_path.is_dir():
+                screen_path = screen_path / 'screen.png'
+            
+            screen_path = screen_path.with_suffix('.png')
+            
+            self._chrome.save_screenshot(f'{screen_path}')
 
     def get_verify_image(self, xpath="//*[@id='ContentPlaceHolder1_imgcode']"):
         return self._chrome.execute_script("""
@@ -86,8 +98,8 @@ class TNPv2Bot:
         ret = True
         self.wait_loading(0.5)
         # offine_msg = "系統開放申請時間為07:00-23:00，請您於07:00手動重新整理頁面，輸入驗證碼後執行”確認送出”鈕即可將申請案送出。草稿資訊僅保留30日，30日內未異動資料或送出申請，草稿將被移除。"
+        # duplicate_msg = "重覆申請，無法申請入園"
         error_verify_code_msg = "驗證碼錯誤"
-
         try:
             alert_text = self._chrome.switch_to.alert.text
 
@@ -97,9 +109,11 @@ class TNPv2Bot:
                 if alert_text.startswith(error_verify_code_msg):
                     ret = False
         except Exception as e:
-            ret = None
+            pass
 
         self.wait_loading()
+
+        # if has //*[@id="form1"]/div[4]/div[3]/div[2]/div[2]/ul/li[1]/font
         return ret
 
     def send_draft(self, retry_limit: int = 100):
@@ -110,9 +124,12 @@ class TNPv2Bot:
             "ContentPlaceHolder1_New_List_btnupd_0").click()
         self.handle_alert()
         
-        utc_now = datetime.utcnow()        
+        utc_now = datetime.utcnow()
+        logger.info(f"1 utc_now: {utc_now}")
         utc_now += relativedelta(months=2, hours=8)
-        date_time = utc_now.strftime("%Y-%m-%d")        
+        logger.info(f"2 utc_now: {utc_now}")
+        date_time = utc_now.strftime("%Y-%m-%d")
+        logger.info(f"3 date_time: {date_time}")
         Select(self._chrome.find_element_by_id("ContentPlaceHolder1_applystart")).select_by_visible_text(date_time)
 
         self._chrome.find_element_by_id(
@@ -159,11 +176,12 @@ class TNPv2Bot:
             self.renew_verify_image(
                 xpath="//*[@id='ContentPlaceHolder1_imgcode']")
 
-    def run(self, sid: str, email: str):
+    def run(self, sid: str, email: str, final_screen_path: str):
         logger.info("1. search draft")
         self.search_draft(sid=sid, email=email)
         logger.info("2. send draft")
         self.send_draft()
+        self.capture_screen(final_screen_path)
         logger.info("Done !!")
 
     def teardown(self):
@@ -174,15 +192,17 @@ class TNPv2Bot:
 def main():
     sid = os.getenv("ID")
     email = os.getenv("EMAIL")
+    final_screen_path = os.getenv("FINAL_SCREEN_PATH")
 
     logger.info(f'sid:   {sid}')
     logger.info(f'email: {email}')
 
     bot = TNPv2Bot()
     try:
-        bot.run(sid, email)
+        bot.run(sid, email, final_screen_path)
     except Exception as e:
         error_logger.error(f"Failed to run bot: {e}")
+        raise e
     finally:
         bot.teardown()
     
