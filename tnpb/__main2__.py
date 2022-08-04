@@ -145,7 +145,7 @@ class TNPv2Bot:
             "ContentPlaceHolder1_btnsetp2upnext").click()
 
         for i in range(retry_limit):
-            if not (7 <= datetime.utcnow().hour+8 < 23):                
+            if not (7 <= (datetime.utcnow() + relativedelta(hours=8)).hour < 23):
                 logger.info("can not send resquest time")
                 return
 
