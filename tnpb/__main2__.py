@@ -5,6 +5,7 @@ import time
 import base64
 from tnpb.ocr import get_verify_code
 from tnpb.logger import error_logger, logger
+from tnpb import __commit_hash__
 import os
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -196,6 +197,7 @@ def main():
 
     logger.info(f'sid:   {sid}')
     logger.info(f'email: {email}')
+    logger.info(f'commit hash: {__commit_hash__}')
 
     bot = TNPv2Bot()
     try:

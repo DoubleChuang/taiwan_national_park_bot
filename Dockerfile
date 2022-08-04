@@ -1,5 +1,5 @@
 FROM python:3.7
-LABEL maintainer="Jacob <chenjr0719@gmail.com>"
+LABEL maintainer="Double <ethan9141@gmail.com>"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -10,6 +10,8 @@ RUN apt update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /tmp/src
+WORKDIR /tmp/src
+RUN sed -i 's/__commit_hash__.*/__commit_hash__ = "${git rev-parse --short HEAD}"/g' /tmp/src/tnpb/__init__.py
 RUN pip install /tmp/src && rm -rf /tmp/src
 
 ### Avoid: 
@@ -17,7 +19,7 @@ RUN pip install /tmp/src && rm -rf /tmp/src
 RUN pip uninstall -y opencv-python opencv-python-headless && \
     pip install opencv-python-headless==4.4.0.46
 
-
 ENV DEBIAN_FRONTEND=dialog
 
+WORKDIR /
 CMD ["tnpb"]
