@@ -160,7 +160,7 @@ class TNPv2Bot:
             except Exception as e:
                 self._chrome.refresh()
                 logger.info(f'Try {i+1} times: {e}')
-                time.sleep(1)
+                self.wait_loading()
                 continue         
 
             vcode.clear()
