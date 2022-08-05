@@ -19,6 +19,8 @@ RUN pip install /tmp/src && rm -rf /tmp/src
 RUN pip uninstall -y opencv-python opencv-python-headless && \
     pip install opencv-python-headless==4.4.0.46
 
+### pre-download OCR model, save download time and speed up bot
+COPY ./model/.paddleocr/whl/ /root/.paddleocr/whl/
 ENV DEBIAN_FRONTEND=dialog
 
 WORKDIR /
