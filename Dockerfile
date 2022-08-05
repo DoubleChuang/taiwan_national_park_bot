@@ -11,7 +11,7 @@ RUN apt update \
 
 COPY . /tmp/src
 WORKDIR /tmp/src
-RUN sed -i 's/__commit_hash__.*/__commit_hash__ = "$(git rev-parse --short HEAD)"/g' /tmp/src/tnpb/__init__.py
+RUN sed -i "s/__commit_hash__.*/__commit_hash__ = '$(git rev-parse --short HEAD)'/g" /tmp/src/tnpb/__init__.py
 RUN pip install /tmp/src && rm -rf /tmp/src
 
 ### Avoid: 
