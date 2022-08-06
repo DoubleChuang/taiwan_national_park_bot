@@ -10,6 +10,7 @@ import os
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from pathlib import Path
 
 
 class TNPv2Bot:
@@ -34,7 +35,6 @@ class TNPv2Bot:
     
     def capture_screen(self, screen_path):
         if screen_path is not None:
-            from pathlib import Path
             screen_path = Path(screen_path)
 
             if screen_path.is_dir():
@@ -117,7 +117,7 @@ class TNPv2Bot:
         # if has //*[@id="form1"]/div[4]/div[3]/div[2]/div[2]/ul/li[1]/font
         return ret
 
-    def send_draft(self, retry_limit: int = 100):
+    def send_draft(self, final_screen_path: str, retry_limit: int = 100, ):
         self._chrome.get("https://npm.cpami.gov.tw/apply_2_3.aspx")
         self.handle_alert()
 
@@ -131,7 +131,13 @@ class TNPv2Bot:
         logger.info(f"2 utc_now: {utc_now}")
         date_time = utc_now.strftime("%Y-%m-%d")
         logger.info(f"3 date_time: {date_time}")
-        Select(self._chrome.find_element_by_id("ContentPlaceHolder1_applystart")).select_by_visible_text(date_time)
+        try:
+            Select(self._chrome.find_element_by_id("ContentPlaceHolder1_applystart")).select_by_visible_text(date_time)
+        except Exception as e:
+            logger.info(f"ContentPlaceHolder1_applystart: {e}")
+            final_screen_path = Path(final_screen_path)
+            final_screen_path = final_screen_path / "no_time.png"
+            self.capture_screen(final_screen_path)
 
         self._chrome.find_element_by_id(
             "ContentPlaceHolder1_btnsetpup").click()
@@ -181,7 +187,7 @@ class TNPv2Bot:
         logger.info("1. search draft")
         self.search_draft(sid=sid, email=email)
         logger.info("2. send draft")
-        self.send_draft()
+        self.send_draft(final_screen_path)
         self.capture_screen(final_screen_path)
         logger.info("Done !!")
 
