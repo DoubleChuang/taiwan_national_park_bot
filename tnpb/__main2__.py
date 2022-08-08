@@ -143,11 +143,9 @@ class TNPv2Bot:
             "ContentPlaceHolder1_btnsetpup").click()
         
         #TODO if member > 1 
-        try:
+        num_member = self._chrome.find_element_by_xpath('//*[@id="ContentPlaceHolder1_teams_count"]').get_attribute("value")
+        if int(num_member) < 2:
             self._chrome.find_element_by_id("lineonechk").click()
-        except Exception as e:
-            logger.info("member > 1")
-            pass
         self._chrome.find_element_by_id(
             "ContentPlaceHolder1_btnsetp2upnext").click()
 
