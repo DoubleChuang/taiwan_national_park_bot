@@ -146,26 +146,31 @@ class TNPv2Bot:
         num_member = self._chrome.find_element_by_xpath('//*[@id="ContentPlaceHolder1_teams_count"]').get_attribute("value")
         if int(num_member) < 2:
             self._chrome.find_element_by_id("lineonechk").click()
-
-        now_utc8 = datetime.utcnow() + relativedelta(hours=8)
-        this_7am = datetime(year=now_utc8.year, month=now_utc8.month, day=now_utc8.day, hour=7)        
-        delta_sec = (this_7am - now_utc8).seconds
-        logger.info(f"{this_7am} - {now_utc8} = {delta_sec}")
-
-        if now_utc8.hour < 7:      
-            logger.info(f"sleep: {delta_sec}")
-            time.sleep(delta_sec)
-        
+       
         self._chrome.find_element_by_id(
             "ContentPlaceHolder1_btnsetp2upnext").click()
 
         for i in range(retry_limit):
-            if not (7 <= (datetime.utcnow() + relativedelta(hours=8)).hour < 23):
-                logger.info("can not send resquest time")
-                return
+            # if not (7 <= (datetime.utcnow() + relativedelta(hours=8)).hour < 23):
+            #     logger.info("can not send resquest time")
+            #     return
+
+            self.wait_loading()
+            now_utc8 = datetime.utcnow() + relativedelta(hours=8)
+            this_7am = datetime(year=now_utc8.year, month=now_utc8.month, day=now_utc8.day, hour=7)        
+            delta_sec = (this_7am - now_utc8).seconds
+            logger.info(f"{this_7am} - {now_utc8} = {delta_sec}")
+
+            if now_utc8.hour < 7:      
+                logger.info(f"sleep: {delta_sec}")
+                time.sleep(delta_sec)
+            
+            if i == 0:
+                self._chrome.refresh()
+                self.wait_loading()
 
             logger.info(f'Try {i+1} times')
-            self.wait_loading()
+            
             vcode = self._chrome.find_element_by_id(
                 "ContentPlaceHolder1_vcode")
             
