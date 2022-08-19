@@ -156,16 +156,16 @@ class TNPv2Bot:
             #     return
 
             self.wait_loading()
-            now_utc8 = datetime.utcnow() + relativedelta(hours=8)
-            this_7am = datetime(year=now_utc8.year, month=now_utc8.month, day=now_utc8.day, hour=7)        
-            delta_sec = (this_7am - now_utc8).seconds
-            logger.info(f"{this_7am} - {now_utc8} = {delta_sec}")
-
-            if now_utc8.hour < 7:      
-                logger.info(f"sleep: {delta_sec}")
-                time.sleep(delta_sec)
-            
             if i == 0:
+                now_utc8 = datetime.utcnow() + relativedelta(hours=8)
+                this_7am = datetime(year=now_utc8.year, month=now_utc8.month, day=now_utc8.day, hour=7)        
+                delta_sec = (this_7am - now_utc8).seconds
+                logger.info(f"{this_7am} - {now_utc8} = {delta_sec}")
+
+                if now_utc8.hour < 7:      
+                    logger.info(f"sleep: {delta_sec}")
+                    time.sleep(delta_sec)
+
                 self._chrome.refresh()
                 self.wait_loading()
 
